@@ -2,7 +2,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
-import java.util.stream.Stream;
+import java.util.stream.*;
 
 /**
  * The responder class represents a response generator object.
@@ -27,10 +27,10 @@ public class Responder
     // Default responses to use if we don't recognise a word.
     private ArrayList<String> defaultResponses;
     // The name of the file containing the default responses.
-    private static final String FILE_OF_DEFAULT_RESPONSES = "default.txt";
+    // private static final String FILE_OF_DEFAULT_RESPONSES = "default.txt";
     // The name of the file containing the default responses.
     // This file has multiline responses and is used for testing.
-    // private static final String FILE_OF_DEFAULT_RESPONSES = "default2.txt";
+    private static final String FILE_OF_DEFAULT_RESPONSES = "default2.txt";
     private Random randomGenerator;
 
     /**
@@ -161,7 +161,38 @@ public class Responder
         
         try (Stream<String> responseStream = Files.lines(path, charset))
         {
-            // put something here
+            // convert the Stream of lines into a List
+            ArrayList<String> responsesFromFile = new ArrayList<String>(
+                responseStream.collect(Collectors.toList()));
+           
+            // iterate over the list... 
+            // initialize a local variable to the null string
+            // IF (the next list element IS NOT the empty string)
+            //      concatenate the next list element to the local string
+            // ELSE (the next list element IS the empty string)
+            //      add the local string to defaultResponses, and move the pointer
+            //      to the next element in the list
+            
+            // ====================================================================
+            
+            // IGNORE EVERYTHING BELOW HERE it doesn't work
+            
+            responseStream.forEach(
+                (response) -> {
+                    String nextResponse = new String("");
+                    if(!response.equals(""))
+                    {
+                        nextResponse += response + " ";
+                    }
+                    if(!nextResponse.equals(""))
+                    {
+                        defaultResponses.add(nextResponse);
+                    }
+                    nextResponse = "";
+                }
+            );
+            // the arrayList now has all the responses from the file, but also has
+            // the blank lines
         }
         catch(FileNotFoundException e) {
             System.err.println("Unable to open " + FILE_OF_DEFAULT_RESPONSES);
