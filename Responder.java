@@ -41,7 +41,9 @@ public class Responder
         responseMap = new HashMap<>();
         defaultResponses = new ArrayList<>();
         fillResponseMap();
-        fillDefaultResponses();
+        // fillDefaultResponses();  // the original authors' method
+        fillDefaultResponses2();    // my new method
+        // fillDefaultResponsesLambdaVersion();     // my other new method
         randomGenerator = new Random();
     }
 
@@ -124,6 +126,9 @@ public class Responder
     /**
      * Build up a list of default responses from which we can pick
      * if we don't know what else to say.
+     * 
+     * This is the original version of the method written by Barnes and Kölling.
+     * It is here for reference.
      */
     private void fillDefaultResponses()
     {
@@ -150,9 +155,10 @@ public class Responder
     }
     
     /**
-     * This is a temporary method to edit fillDefaultResponses without 
-     * losing the original code. I will rename this more appropriately 
-     * later.
+     * Build up a list of default responses from which we can pick
+     * if we don't know what else to say.
+     * This method parses an input text file in which responses are separated by a
+     * blank line in the file.
      */
     private void fillDefaultResponses2()
     {
@@ -164,19 +170,73 @@ public class Responder
             // convert the Stream of lines into a List
             ArrayList<String> responsesFromFile = new ArrayList<String>(
                 responseStream.collect(Collectors.toList()));
-           
-            // iterate over the list... 
-            // initialize a local variable to the null string
-            // IF (the next list element IS NOT the empty string)
-            //      concatenate the next list element to the local string
-            // ELSE (the next list element IS the empty string)
-            //      add the local string to defaultResponses, and move the pointer
-            //      to the next element in the list
             
-            // ====================================================================
+            // the population procedure depends on the list ending with an empty
+            // String, but the Stream would have eliminated any empty String at the
+            // end of the file. Therefore, make sure the list ends with an empty String
+            responsesFromFile.add("");
             
-            // IGNORE EVERYTHING BELOW HERE it doesn't work
+            // create an Iterator
+            Iterator<String> it = responsesFromFile.iterator();
             
+            // initialize a newResponse variable to the empty String
+            String newResponse = "";
+            
+            while(it.hasNext())
+            {
+                String text = it.next();
+                if(!text.equals(""))    // the next list element IS NOT the empty String
+                {
+                    // concatenate the next list element to the newResponse String
+                    newResponse += text + " ";
+                }
+                else    // the next list element IS the empty String
+                {
+                    // this is where the method depends on the list ending with
+                    // the empty String
+                    // make sure the newResponse String isn't empty
+                    if(newResponse.length() > 0)
+                    {
+                        // trim any trailing whitespace from the local String
+                        // and add the local String to defaultResponses
+                        defaultResponses.add(newResponse.trim());
+                    }
+                    
+                    // reset the newResponse String to empty
+                    newResponse = "";
+                    
+                    // move the pointer to the next element in the list
+                    // the nature of the while loop handles this movement
+                }
+            }
+        }
+        catch(FileNotFoundException e) {
+            System.err.println("Unable to open " + FILE_OF_DEFAULT_RESPONSES);
+        }
+        catch(IOException e) {
+            System.err.println("A problem was encountered reading " +
+                               FILE_OF_DEFAULT_RESPONSES);
+        }
+        // Make sure we have at least one response.
+        if(defaultResponses.size() == 0) {
+            defaultResponses.add("Could you elaborate on that?");
+        }
+    }
+    
+    /**
+     * Build up a list of default responses from which we can pick
+     * if we don't know what else to say.
+     * This method explores the use of streams and lambdas and is not 
+     * properly functional. It remains here for future code exploration
+     * and debugging.
+     */
+    private void fillDefaultResponsesLambdaVersion()
+    {
+        Charset charset = Charset.forName("US-ASCII");
+        Path path = Paths.get(FILE_OF_DEFAULT_RESPONSES);
+        
+        try (Stream<String> responseStream = Files.lines(path, charset))
+        {
             responseStream.forEach(
                 (response) -> {
                     String nextResponse = new String("");
@@ -186,13 +246,18 @@ public class Responder
                     }
                     if(!nextResponse.equals(""))
                     {
-                        defaultResponses.add(nextResponse);
+                        if(!nextResponse.equals(null))
+                        {
+                            defaultResponses.add(nextResponse);
+                        }
                     }
                     nextResponse = "";
                 }
             );
-            // the arrayList now has all the responses from the file, but also has
-            // the blank lines
+            // the arrayList should now have all the responses from the file
+            // this works for single line responses only
+            // I will explore this more in my own time where there isn't the pressure
+            // to make a deadline
         }
         catch(FileNotFoundException e) {
             System.err.println("Unable to open " + FILE_OF_DEFAULT_RESPONSES);
