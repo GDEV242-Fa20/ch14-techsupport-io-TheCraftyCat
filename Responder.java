@@ -14,8 +14,10 @@ import java.util.*;
  * in the HashMap, the corresponding response is returned. If none of the input
  * words is recognized, one of the default responses is randomly chosen.
  * 
- * @author David J. Barnes and Michael Kölling.
- * @version 2016.02.29
+ * @author Catherine Oldfield
+ * for RVCC GDEV242 - Fall 2020
+ * from code written by David J. Barnes and Michael Kölling.
+ * @version 2020/11/25
  */
 public class Responder
 {
@@ -25,6 +27,9 @@ public class Responder
     private ArrayList<String> defaultResponses;
     // The name of the file containing the default responses.
     private static final String FILE_OF_DEFAULT_RESPONSES = "default.txt";
+    // The name of the file containing the default responses.
+    // This file has multiline responses and is used for testing.
+    // private static final String FILE_OF_DEFAULT_RESPONSES = "default2.txt";
     private Random randomGenerator;
 
     /**
@@ -120,6 +125,35 @@ public class Responder
      * if we don't know what else to say.
      */
     private void fillDefaultResponses()
+    {
+        Charset charset = Charset.forName("US-ASCII");
+        Path path = Paths.get(FILE_OF_DEFAULT_RESPONSES);
+        try (BufferedReader reader = Files.newBufferedReader(path, charset)) {
+            String response = reader.readLine();
+            while(response != null) {
+                defaultResponses.add(response);
+                response = reader.readLine();
+            }
+        }
+        catch(FileNotFoundException e) {
+            System.err.println("Unable to open " + FILE_OF_DEFAULT_RESPONSES);
+        }
+        catch(IOException e) {
+            System.err.println("A problem was encountered reading " +
+                               FILE_OF_DEFAULT_RESPONSES);
+        }
+        // Make sure we have at least one response.
+        if(defaultResponses.size() == 0) {
+            defaultResponses.add("Could you elaborate on that?");
+        }
+    }
+    
+    /**
+     * This is a temporary method to edit fillDefaultResponses without 
+     * losing the original code. I will rename this more appropriately 
+     * later.
+     */
+    private void fillDefaultResponses2()
     {
         Charset charset = Charset.forName("US-ASCII");
         Path path = Paths.get(FILE_OF_DEFAULT_RESPONSES);
