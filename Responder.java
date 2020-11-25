@@ -28,9 +28,12 @@ public class Responder
     private ArrayList<String> defaultResponses;
     // The name of the file containing the default responses.
     // private static final String FILE_OF_DEFAULT_RESPONSES = "default.txt";
-    // The name of the file containing the default responses.
-    // This file has multiline responses and is used for testing.
+    
+    // The name of the file containing the default responses as multiline responses.
     private static final String FILE_OF_DEFAULT_RESPONSES = "default2.txt";
+    
+    // The name of the file containing the keys and values for the response map.
+    private static final String FILE_OF_KEYS_AND_VALUES = "keyvalue.txt";
     private Random randomGenerator;
 
     /**
@@ -40,7 +43,8 @@ public class Responder
     {
         responseMap = new HashMap<>();
         defaultResponses = new ArrayList<>();
-        fillResponseMap();
+        fillResponseMap();          // the original authors' method
+        // fillResponseMap2();      // my new method
         // fillDefaultResponses();  // the original authors' method
         fillDefaultResponses2();    // my new method
         // fillDefaultResponsesLambdaVersion();     // my other new method
@@ -72,6 +76,9 @@ public class Responder
     /**
      * Enter all the known keywords and their associated responses
      * into our response map.
+     * 
+     * This is the original version of the method written by Barnes and Kölling.
+     * It is here for reference.
      */
     private void fillResponseMap()
     {
@@ -122,6 +129,78 @@ public class Responder
                         "they simply won't sell... Stubborn people they are. Nothing we can\n" +
                         "do about it, I'm afraid.");
     }
+    
+    /**
+     * Enter all the known keywords and their associated responses
+     * into our response map.
+     * 
+     * This method parses an input text file in which key, value pairs are
+     * formatted in the following manner:
+     *      key1, key2, ...
+     *      value (which can span multiple lines)
+     *      
+     * A blank line indicates the end of a key, value pair.
+     */
+    private void fillResponseMap2()
+    {
+        // for reference in populating a map:
+        responseMap.put("crash", 
+                        "Well, it never crashes on our system. It must have something\n" +
+                        "to do with your system. Tell me more about your configuration.");
+        responseMap.put("crashes", 
+                        "Well, it never crashes on our system. It must have something\n" +
+                        "to do with your system. Tell me more about your configuration.");
+        
+        Charset charset = Charset.forName("US-ASCII");
+        Path path = Paths.get(FILE_OF_KEYS_AND_VALUES);
+        try (Stream<String> stringStream = Files.lines(path, charset))
+        {
+            // convert the Stream of lines into a List
+            ArrayList<String> dataFromFile = new ArrayList<String>(
+                stringStream.collect(Collectors.toList()));
+            
+            // the population procedure depends on the list ending with an empty
+            // String, but the Stream would have eliminated any empty String at the
+            // end of the file. Therefore, make sure the list ends with an empty String
+            dataFromFile.add("");
+            
+            // create an Iterator
+            Iterator<String> it = dataFromFile.iterator();
+            
+            // initialize a newResponse variable to the empty String
+            String newResponse = "";
+            
+            while(it.hasNext())
+            {
+                // we're going to have to iterate through the ArrayList
+                // and separate out the lines into key lines and value lines
+                // and quite frankly it's going to be a mess
+                
+                // the file would never start with an empty line, so the
+                // first line has to be a key or keys
+                // populate these into an ArrayList, using the "," as a separator
+                // and the trim method to get rid of whitespace
+                // set a flag, something like keyDone
+                
+                // next, parse the list until a blank line is encoutered
+                // concatenate all lines until the blank line into a single
+                // value variable
+                
+                // now, for each value in the keys ArrayList, put the 
+                // value variable into the map
+                // reset the flag so that the entire process happens again
+                
+                // scream a lot
+            }
+        }
+        catch(FileNotFoundException e) {
+            System.err.println("Unable to open " + FILE_OF_KEYS_AND_VALUES);
+        }
+        catch(IOException e) {
+            System.err.println("A problem was encountered reading " +
+                               FILE_OF_KEYS_AND_VALUES);
+        }
+    }
 
     /**
      * Build up a list of default responses from which we can pick
@@ -157,8 +236,9 @@ public class Responder
     /**
      * Build up a list of default responses from which we can pick
      * if we don't know what else to say.
-     * This method parses an input text file in which responses are separated by a
-     * blank line in the file.
+     * This method parses an input text file in which responses are 
+     * separated by a blank line in the file. A single response may 
+     * take up multiple lines in the file.
      */
     private void fillDefaultResponses2()
     {
