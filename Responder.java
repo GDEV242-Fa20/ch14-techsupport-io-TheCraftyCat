@@ -3,6 +3,7 @@ import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
+import java.util.Arrays;
 
 /**
  * The responder class represents a response generator object.
@@ -18,7 +19,7 @@ import java.util.stream.*;
  * @author Catherine Oldfield
  * for RVCC GDEV242 - Fall 2020
  * from code written by David J. Barnes and Michael Kölling.
- * @version 2020/11/25
+ * @version 11/25/2020
  */
 public class Responder
 {
@@ -43,8 +44,8 @@ public class Responder
     {
         responseMap = new HashMap<>();
         defaultResponses = new ArrayList<>();
-        fillResponseMap();          // the original authors' method
-        // fillResponseMap2();      // my new method
+        // fillResponseMap();          // the original authors' method
+        fillResponseMap2();      // my new method
         // fillDefaultResponses();  // the original authors' method
         fillDefaultResponses2();    // my new method
         // fillDefaultResponsesLambdaVersion();     // my other new method
@@ -137,7 +138,8 @@ public class Responder
      * This method parses an input text file in which key, value pairs are
      * formatted in the following manner:
      *      key1, key2, ...
-     *      value (which can span multiple lines)
+     *      value can be a single line
+     *      or it can span multiple lines
      *      
      * A blank line indicates the end of a key, value pair.
      */
@@ -159,38 +161,68 @@ public class Responder
             ArrayList<String> dataFromFile = new ArrayList<String>(
                 stringStream.collect(Collectors.toList()));
             
-            // the population procedure depends on the list ending with an empty
-            // String, but the Stream would have eliminated any empty String at the
+            // the population procedure depends on the list ending with an empty String
+            // but the Stream would have eliminated any empty String line at the
             // end of the file. Therefore, make sure the list ends with an empty String
             dataFromFile.add("");
             
             // create an Iterator
             Iterator<String> it = dataFromFile.iterator();
             
-            // initialize a newResponse variable to the empty String
-            String newResponse = "";
+            // initialize a newValue variable to the empty String
+            String newValue = "";
+            
+            // initialize a keyList variable to hold key Strings
+            List<String> keyList = new ArrayList<String>();
+            
+            // initialize a flag variable to aid in the iteration process
+            boolean gotKeys = false;
             
             while(it.hasNext())
             {
-                // we're going to have to iterate through the ArrayList
-                // and separate out the lines into key lines and value lines
-                // and quite frankly it's going to be a mess
+                String text = it.next();
                 
-                // the file would never start with an empty line, so the
-                // first line has to be a key or keys
-                // populate these into an ArrayList, using the "," as a separator
-                // and the trim method to get rid of whitespace
-                // set a flag, something like keyDone
+                if(!gotKeys)    // we are at a key element
+                {
+                    // separate the string into individual values, using the comma
+                    // as the delimeter
+                    String keyArray[] = text.split(",");
+                    
+                    // convert the array to an ArrayList
+                    keyList = Arrays.asList(keyArray);
+                    
+                    // set the flag
+                    gotKeys = true;
+                }
                 
-                // next, parse the list until a blank line is encoutered
-                // concatenate all lines until the blank line into a single
-                // value variable
-                
-                // now, for each value in the keys ArrayList, put the 
-                // value variable into the map
-                // reset the flag so that the entire process happens again
-                
-                // scream a lot
+                else        // we are not at a key element
+                {
+                    if(!text.equals(""))    // the element is NOT the empty String
+                    {
+                        // concatenete the next list element to the newValue String
+                        newValue += text + "\n";
+                    }
+                    else        // the element IS the empty String
+                    {
+                        // make sure the newValue String isn't empty
+                        if(newValue.length() > 0)
+                        {
+                            // add the value to the responseMap for each key in 
+                            // the keyList, trimming any whitespace from the
+                            // key(s) and the value
+                            for(String key : keyList)
+                            {
+                                responseMap.put(key.trim(), newValue.trim());
+                            }
+                        }
+                        
+                        // reset the newValue String to empty
+                        newValue = "";
+                        
+                        // reset the flag
+                        gotKeys = false;
+                    }
+                }
             }
         }
         catch(FileNotFoundException e) {
@@ -245,19 +277,19 @@ public class Responder
         Charset charset = Charset.forName("US-ASCII");
         Path path = Paths.get(FILE_OF_DEFAULT_RESPONSES);
         
-        try (Stream<String> responseStream = Files.lines(path, charset))
+        try (Stream<String> stringStream = Files.lines(path, charset))
         {
             // convert the Stream of lines into a List
-            ArrayList<String> responsesFromFile = new ArrayList<String>(
-                responseStream.collect(Collectors.toList()));
+            ArrayList<String> dataFromFile = new ArrayList<String>(
+                stringStream.collect(Collectors.toList()));
             
-            // the population procedure depends on the list ending with an empty
-            // String, but the Stream would have eliminated any empty String at the
+            // the population procedure depends on the list ending with an empty String
+            // but the Stream would have eliminated any empty String line at the
             // end of the file. Therefore, make sure the list ends with an empty String
-            responsesFromFile.add("");
+            dataFromFile.add("");
             
             // create an Iterator
-            Iterator<String> it = responsesFromFile.iterator();
+            Iterator<String> it = dataFromFile.iterator();
             
             // initialize a newResponse variable to the empty String
             String newResponse = "";
